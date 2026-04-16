@@ -7,7 +7,7 @@ from src.app import app, activities
 
 @pytest.fixture(autouse=True)
 def reset_activities():
-    """Restore each activity's participants list to its original state before every test."""
+    """Snapshot participants before each test and restore them after each test."""
     original_participants = {
         name: copy.copy(data["participants"]) for name, data in activities.items()
     }
@@ -17,6 +17,16 @@ def reset_activities():
 
 
 client = TestClient(app)
+
+
+# ---------------------------------------------------------------------------
+# GET /
+# ---------------------------------------------------------------------------
+
+def test_root_redirects_to_index():
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code in (301, 302, 307, 308)
+    assert response.headers["location"].endswith("/static/index.html")
 
 
 # ---------------------------------------------------------------------------
