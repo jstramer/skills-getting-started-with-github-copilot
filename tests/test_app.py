@@ -101,6 +101,35 @@ def test_signup_returns_400_for_duplicate_email():
     assert "already signed up" in response.json()["detail"]
 
 
+def test_signup_normalizes_email_with_whitespace_and_uppercase():
+    # Arrange
+    activity_name = "Programming Class"
+    raw_email = "  Student@Mergington.edu  "
+    normalized_email = "student@mergington.edu"
+
+    # Act
+    response = client.post(f"/activities/{activity_name}/signup", params={"email": raw_email})
+
+    # Assert
+    assert response.status_code == 200
+    assert normalized_email in activities[activity_name]["participants"]
+    assert raw_email not in activities[activity_name]["participants"]
+    assert normalized_email in response.json()["message"]
+
+
+def test_signup_duplicate_check_is_case_insensitive():
+    # Arrange
+    activity_name = "Chess Club"
+    email = "MICHAEL@MERGINGTON.EDU"  # seeded as lowercase
+
+    # Act
+    response = client.post(f"/activities/{activity_name}/signup", params={"email": email})
+
+    # Assert
+    assert response.status_code == 400
+    assert "already signed up" in response.json()["detail"]
+
+
 def test_signup_returns_404_for_unknown_activity():
     # Arrange
     activity_name = "Nonexistent Club"
